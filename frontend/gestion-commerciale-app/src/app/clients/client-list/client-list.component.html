@@ -1,0 +1,41 @@
+<div class="page">
+  <div class="page__header">
+    <h2>Clients</h2>
+    <a routerLink="/clients/nouveau" class="btn btn--primary">+ Nouveau client</a>
+  </div>
+
+  @if (loading) {
+    <p>Chargement...</p>
+  } @else {
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Prénom / Raison sociale</th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Créé le</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (client of clients; track client.id) {
+          <tr>
+            <td>{{ client.nom }}</td>
+            <td>{{ client.prenomOuRaisonSociale }}</td>
+            <td>{{ client.email }}</td>
+            <td>{{ client.telephone || '-' }}</td>
+            <td>{{ client.dateCreation | date:'dd/MM/yyyy' }}</td>
+            <td class="actions">
+              <a [routerLink]="['/clients', client.id]">Détail</a>
+              <a [routerLink]="['/clients', client.id, 'modifier']">Modifier</a>
+              <button (click)="remove(client)" class="btn btn--danger-text">Supprimer</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6">Aucun client pour le moment.</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

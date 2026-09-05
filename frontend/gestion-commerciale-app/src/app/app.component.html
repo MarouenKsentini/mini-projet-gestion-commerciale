@@ -1,0 +1,16 @@
+<div class="app-shell">
+  <nav class="navbar">
+    <span class="navbar__brand">Gestion Commerciale</span>
+    <div class="navbar__links">
+      <a routerLink="/clients" routerLinkActive="active">Clients</a>
+      <a routerLink="/produits" routerLinkActive="active">Produits</a>
+      <a routerLink="/commandes" routerLinkActive="active">Commandes</a>
+    </div>
+  </nav>
+
+  <main class="app-content">
+    <router-outlet />
+  </main>
+
+  <app-toast />
+</div>

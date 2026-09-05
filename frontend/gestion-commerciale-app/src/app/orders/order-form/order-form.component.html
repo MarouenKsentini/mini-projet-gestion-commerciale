@@ -1,0 +1,52 @@
+<div class="page">
+  <h2>{{ orderId ? 'Modifier la commande' : 'Nouvelle commande' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+    <label>
+      Client *
+      <select formControlName="clientId">
+        <option [ngValue]="null">-- Sélectionner un client --</option>
+        @for (client of clients; track client.id) {
+          <option [ngValue]="client.id">{{ client.nom }} {{ client.prenomOuRaisonSociale }}</option>
+        }
+      </select>
+      @if (form.get('clientId')?.touched && form.get('clientId')?.invalid) {
+        <span class="error">Le client est obligatoire.</span>
+      }
+    </label>
+
+    <h3>Lignes de commande</h3>
+
+    <div formArrayName="lines" class="order-lines">
+      @for (line of lines.controls; track $index; let i = $index) {
+        <div [formGroupName]="i" class="order-line">
+          <select formControlName="productId">
+            <option [ngValue]="null">-- Produit --</option>
+            @for (product of products; track product.id) {
+              <option [ngValue]="product.id">{{ product.nom }} ({{ product.prixUnitaireHT }} DT)</option>
+            }
+          </select>
+
+          <input type="number" formControlName="quantite" min="1" />
+
+          <span class="order-line__stock">Stock dispo : {{ availableStock(i) }}</span>
+          <span class="order-line__total">{{ lineTotal(i) }} DT</span>
+
+          <button type="button" (click)="removeLine(i)" class="btn btn--danger-text">Supprimer</button>
+        </div>
+      }
+    </div>
+
+    <button type="button" (click)="addLine()" class="btn">+ Ajouter un produit</button>
+
+    <div class="order-totals">
+      <p>Total HT : <strong>{{ totalHT }} DT</strong></p>
+      <p>Total TTC (TVA 19%) : <strong>{{ totalTTC }} DT</strong></p>
+    </div>
+
+    <div class="form__actions">
+      <a routerLink="/commandes" class="btn">Annuler</a>
+      <button type="submit" class="btn btn--primary">Enregistrer</button>
+    </div>
+  </form>
+</div>

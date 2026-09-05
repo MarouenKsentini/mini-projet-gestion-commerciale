@@ -1,0 +1,40 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.dbmdl
+*.jfm
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+out-tsc/
+coverage/
+libpeerconnection.log
+typings/
+
+# IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*~
+
+# System
+.DS_Store
+Thumbs.db
+*.log
+
+# Env & secrets — keep example, ignore local override
+appsettings.Development.json
+.env
+.env.local
+
+# Build artifacts
+*.nupkg

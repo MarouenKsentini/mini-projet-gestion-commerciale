@@ -1,0 +1,14 @@
+<div class="page">
+  @if (client) {
+    <h2>{{ client.nom }} {{ client.prenomOuRaisonSociale }}</h2>
+    <dl class="detail">
+      <dt>Email</dt><dd>{{ client.email }}</dd>
+      <dt>Téléphone</dt><dd>{{ client.telephone || '-' }}</dd>
+      <dt>Adresse</dt><dd>{{ client.adresse || '-' }}</dd>
+      <dt>Créé le</dt><dd>{{ client.dateCreation | date:'dd/MM/yyyy HH:mm' }}</dd>
+    </dl>
+    <a routerLink="/clients" class="btn">Retour à la liste</a>
+  } @else {
+    <p>Chargement...</p>
+  }
+</div>

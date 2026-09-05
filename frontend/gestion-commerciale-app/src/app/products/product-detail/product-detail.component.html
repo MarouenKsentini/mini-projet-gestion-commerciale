@@ -1,0 +1,15 @@
+<div class="page">
+  @if (product) {
+    <h2>{{ product.nom }}</h2>
+    <dl class="detail">
+      <dt>Référence</dt><dd>{{ product.reference }}</dd>
+      <dt>Description</dt><dd>{{ product.description || '-' }}</dd>
+      <dt>Prix unitaire HT</dt><dd>{{ product.prixUnitaireHT }} DT</dd>
+      <dt>Stock disponible</dt><dd>{{ product.quantiteStock }}</dd>
+      <dt>Créé le</dt><dd>{{ product.dateCreation | date:'dd/MM/yyyy HH:mm' }}</dd>
+    </dl>
+    <a routerLink="/produits" class="btn">Retour à la liste</a>
+  } @else {
+    <p>Chargement...</p>
+  }
+</div>

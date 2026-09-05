@@ -1,0 +1,44 @@
+<div class="page">
+  <h2>{{ clientId ? 'Modifier le client' : 'Nouveau client' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+    <label>
+      Nom *
+      <input type="text" formControlName="nom" />
+      @if (form.get('nom')?.touched && form.get('nom')?.invalid) {
+        <span class="error">Le nom est obligatoire.</span>
+      }
+    </label>
+
+    <label>
+      Prénom / Raison sociale *
+      <input type="text" formControlName="prenomOuRaisonSociale" />
+      @if (form.get('prenomOuRaisonSociale')?.touched && form.get('prenomOuRaisonSociale')?.invalid) {
+        <span class="error">Ce champ est obligatoire.</span>
+      }
+    </label>
+
+    <label>
+      Email *
+      <input type="email" formControlName="email" />
+      @if (form.get('email')?.touched && form.get('email')?.invalid) {
+        <span class="error">Email invalide.</span>
+      }
+    </label>
+
+    <label>
+      Téléphone
+      <input type="text" formControlName="telephone" />
+    </label>
+
+    <label>
+      Adresse
+      <textarea formControlName="adresse" rows="3"></textarea>
+    </label>
+
+    <div class="form__actions">
+      <a routerLink="/clients" class="btn">Annuler</a>
+      <button type="submit" class="btn btn--primary">Enregistrer</button>
+    </div>
+  </form>
+</div>

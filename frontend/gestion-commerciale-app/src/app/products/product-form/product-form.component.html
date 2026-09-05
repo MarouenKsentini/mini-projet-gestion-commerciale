@@ -1,0 +1,47 @@
+<div class="page">
+  <h2>{{ productId ? 'Modifier le produit' : 'Nouveau produit' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+    <label>
+      Référence *
+      <input type="text" formControlName="reference" />
+      @if (form.get('reference')?.touched && form.get('reference')?.invalid) {
+        <span class="error">La référence est obligatoire.</span>
+      }
+    </label>
+
+    <label>
+      Nom du produit *
+      <input type="text" formControlName="nom" />
+      @if (form.get('nom')?.touched && form.get('nom')?.invalid) {
+        <span class="error">Le nom est obligatoire.</span>
+      }
+    </label>
+
+    <label>
+      Description
+      <textarea formControlName="description" rows="3"></textarea>
+    </label>
+
+    <label>
+      Prix unitaire HT *
+      <input type="number" step="0.01" formControlName="prixUnitaireHT" />
+      @if (form.get('prixUnitaireHT')?.touched && form.get('prixUnitaireHT')?.invalid) {
+        <span class="error">Le prix doit être supérieur à zéro.</span>
+      }
+    </label>
+
+    <label>
+      Quantité en stock *
+      <input type="number" formControlName="quantiteStock" />
+      @if (form.get('quantiteStock')?.touched && form.get('quantiteStock')?.invalid) {
+        <span class="error">Le stock ne peut pas être négatif.</span>
+      }
+    </label>
+
+    <div class="form__actions">
+      <a routerLink="/produits" class="btn">Annuler</a>
+      <button type="submit" class="btn btn--primary">Enregistrer</button>
+    </div>
+  </form>
+</div>

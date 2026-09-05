@@ -1,0 +1,48 @@
+<div class="page">
+  @if (order) {
+    <div class="page__header">
+      <h2>Commande {{ order.numeroCommande }}</h2>
+      <span class="badge badge--{{ order.statut?.toLowerCase() }}">{{ order.statut }}</span>
+    </div>
+
+    <dl class="detail">
+      <dt>Client</dt><dd>{{ order.clientNom }}</dd>
+      <dt>Date</dt><dd>{{ order.dateCommande | date:'dd/MM/yyyy HH:mm' }}</dd>
+    </dl>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th>Quantité</th>
+          <th>Prix unitaire</th>
+          <th>Total ligne</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (line of order.lines; track line.id) {
+          <tr>
+            <td>{{ line.productNom }}</td>
+            <td>{{ line.quantite }}</td>
+            <td>{{ line.prixUnitaire }} DT</td>
+            <td>{{ line.totalLigne }} DT</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="order-totals">
+      <p>Total HT : <strong>{{ order.totalHT }} DT</strong></p>
+      <p>Total TTC : <strong>{{ order.totalTTC }} DT</strong></p>
+    </div>
+
+    <div class="form__actions">
+      <a routerLink="/commandes" class="btn">Retour à la liste</a>
+      @if (order.statut === 'Brouillon') {
+        <button (click)="validate()" class="btn btn--primary">Valider la commande</button>
+      }
+    </div>
+  } @else {
+    <p>Chargement...</p>
+  }
+</div>
