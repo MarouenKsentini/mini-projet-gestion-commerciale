@@ -38,3 +38,8 @@ appsettings.Development.json
 
 # Build artifacts
 *.nupkg
+
+# Python
+__pycache__/
+*.pyc
+
