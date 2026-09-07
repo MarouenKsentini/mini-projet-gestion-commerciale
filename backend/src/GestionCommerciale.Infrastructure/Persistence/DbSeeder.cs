@@ -3,6 +3,7 @@ using GestionCommerciale.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace GestionCommerciale.Infrastructure.Persistence;
 
@@ -41,13 +42,23 @@ public static class DbSeeder
 public class DbSeederHostedService : IHostedService
 {
     private readonly IServiceProvider _sp;
-    public DbSeederHostedService(IServiceProvider sp) => _sp = sp;
+    private readonly ILogger<DbSeederHostedService> _logger;
+    public DbSeederHostedService(IServiceProvider sp, ILogger<DbSeederHostedService> logger) { _sp = sp; _logger = logger; }
     public async Task StartAsync(CancellationToken ct)
     {
-        using var scope = _sp.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync(ct);
-        await DbSeeder.SeedAsync(db);
+        try
+        {
+            using var scope = _sp.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Database.MigrateAsync(ct);
+            await DbSeeder.SeedAsync(db);
+            _logger.LogInformation("Database migrated and seeded.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Database migration/seed failed for Server DESKTOP-7VIA6NI\\MAROUEN. Check SQL Server Browser service, instance name, and that Integrated Security login has dbcreator. App will still start — fix appsettings.Development.json and restart, or run backend/database/seed.sql manually. Error 26 = instance not found/spelling or Browser stopped.");
+            // Don't throw — let API start so Swagger is reachable and error is visible
+        }
     }
     public Task StopAsync(CancellationToken ct) => Task.CompletedTask;
 }
