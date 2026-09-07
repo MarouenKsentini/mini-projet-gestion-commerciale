@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IClientService, ClientService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddHostedService<DbSeederHostedService>();
 
         return services;
     }
