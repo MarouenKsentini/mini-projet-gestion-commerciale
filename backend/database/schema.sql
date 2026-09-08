@@ -43,3 +43,8 @@ CREATE TABLE OrderLines (
     CONSTRAINT FK_OrderLines_Orders FOREIGN KEY (OrderId) REFERENCES Orders(Id) ON DELETE CASCADE,
     CONSTRAINT FK_OrderLines_Products FOREIGN KEY (ProductId) REFERENCES Products(Id)
 );
+
+-- Index créés par la migration EF Core InitialCreate (jointures / FK)
+CREATE INDEX IX_Orders_ClientId ON Orders (ClientId);
+CREATE INDEX IX_OrderLines_OrderId ON OrderLines (OrderId);
+CREATE INDEX IX_OrderLines_ProductId ON OrderLines (ProductId);
