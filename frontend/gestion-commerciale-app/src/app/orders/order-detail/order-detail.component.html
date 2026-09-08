@@ -40,6 +40,7 @@
       <a routerLink="/commandes" class="btn">Retour à la liste</a>
       @if (order.statut === 'Brouillon') {
         <button (click)="validate()" class="btn btn--primary">Valider la commande</button>
+        <button (click)="cancel()" class="btn">Annuler la commande</button>
       }
     </div>
   } @else {

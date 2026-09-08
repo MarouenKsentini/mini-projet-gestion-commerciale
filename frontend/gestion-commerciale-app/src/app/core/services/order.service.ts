@@ -33,4 +33,8 @@ export class OrderService {
   validate(id: number): Observable<Order> {
     return this.http.post<Order>(`${this.baseUrl}/${id}/validate`, {});
   }
+
+  cancel(id: number): Observable<Order> {
+    return this.http.post<Order>(`${this.baseUrl}/${id}/cancel`, {});
+  }
 }

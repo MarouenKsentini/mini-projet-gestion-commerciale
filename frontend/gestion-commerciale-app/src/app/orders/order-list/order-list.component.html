@@ -31,6 +31,7 @@
               @if (order.statut === 'Brouillon') {
                 <a [routerLink]="['/commandes', order.id, 'modifier']">Modifier</a>
                 <button (click)="validate(order)" class="btn btn--success-text">Valider</button>
+                <button (click)="cancel(order)" class="btn">Annuler</button>
                 <button (click)="remove(order)" class="btn btn--danger-text">Supprimer</button>
               }
             </td>

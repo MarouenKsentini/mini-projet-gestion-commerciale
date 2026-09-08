@@ -30,6 +30,7 @@
           <input type="number" formControlName="quantite" min="1" />
 
           <span class="order-line__stock">Stock dispo : {{ availableStock(i) }}</span>
+          <span class="order-line__price">Prix unitaire : {{ unitPrice(i) }} DT</span>
           <span class="order-line__total">{{ lineTotal(i) }} DT</span>
 
           <button type="button" (click)="removeLine(i)" class="btn btn--danger-text">Supprimer</button>

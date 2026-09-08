@@ -47,4 +47,9 @@ public class OrdersController : ControllerBase
     [HttpPost("{id:int}/validate")]
     public async Task<ActionResult<OrderDto>> Validate(int id)
         => Ok(await _service.ValidateAsync(id));
+
+    /// <summary>Annule la commande (uniquement si elle est en brouillon).</summary>
+    [HttpPost("{id:int}/cancel")]
+    public async Task<ActionResult<OrderDto>> Cancel(int id)
+        => Ok(await _service.CancelAsync(id));
 }

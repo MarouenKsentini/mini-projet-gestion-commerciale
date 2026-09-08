@@ -39,6 +39,12 @@ appsettings.Development.json
 # Build artifacts
 *.nupkg
 
+# Local SQLite databases (dev/test artifacts, never commit)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
 # Python
 __pycache__/
 *.pyc

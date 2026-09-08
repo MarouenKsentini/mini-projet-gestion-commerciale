@@ -39,4 +39,16 @@ export class OrderDetailComponent implements OnInit {
       }
     });
   }
+
+  cancel(): void {
+    if (!this.order?.id) return;
+    if (!confirm('Annuler cette commande ?')) return;
+
+    this.orderService.cancel(this.order.id).subscribe({
+      next: () => {
+        this.toast.success('Commande annulée.');
+        this.load();
+      }
+    });
+  }
 }

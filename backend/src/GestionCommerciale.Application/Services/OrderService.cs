@@ -121,6 +121,20 @@ public class OrderService : IOrderService
         return ToDto(order);
     }
 
+    public async Task<OrderDto> CancelAsync(int id)
+    {
+        var order = await GetOrderWithDetailsAsync(id);
+
+        if (order.Statut != OrderStatus.Brouillon)
+            throw new BusinessException("Seule une commande en brouillon peut être annulée.");
+
+        order.Statut = OrderStatus.Annulee;
+
+        await _db.SaveChangesAsync();
+
+        return ToDto(order);
+    }
+
     // ---- Helpers privés ----
 
     private async Task BuildLinesAsync(Order order, List<OrderLineUpsertDto> linesDto)

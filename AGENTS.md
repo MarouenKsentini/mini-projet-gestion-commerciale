@@ -1,44 +1,32 @@
 # AGENTS.md
 
 ## Stack
-- .NET 8 layered API (Domain / Application / Infrastructure / Api) + EF Core SQL Server. Angular 18 standalone (no NgModules). No `opencode.json`, no CI (`.github/workflows/` empty), no lint/pre-commit; frontend tests are Karma+Jasmine boilerplate only.
+- .NET 8 layered API (`backend/GestionCommerciale.sln`: Domain / Application / Infrastructure / Api) + EF Core. Angular 18 standalone (no NgModules) in `frontend/gestion-commerciale-app/`. No `opencode.json`, no CI (`.github/workflows/` empty), no lint/pre-commit; no backend tests, frontend `npm test` is Karma+Jasmine boilerplate (needs Chrome).
 
-## Layout
-- `backend/GestionCommerciale.sln` — 4 projects in `backend/src/`: `Domain` (entities/enums/exceptions), `Application` (DTOs/interfaces/services), `Infrastructure` (`Persistence/AppDbContext.cs:7`, `Persistence/DependencyInjection.cs:11`), `Api` (`Program.cs:4`, `Middleware/ExceptionHandlingMiddleware.cs:11`, `Controllers/`).
-- `backend/database/schema.sql:1` — fallback DDL when `dotnet ef` cannot run. Initial migration already committed at `Infrastructure/Migrations/20260905132612_InitialCreate.cs`.
-- `frontend/gestion-commerciale-app/` — Angular app. Routing `src/app/app.routes.ts:3` (French paths `clients`/`produits`/`commandes`, lazy `loadComponent`). Config `src/app/app.config.ts:8` wires `errorInterceptor`. API URL `src/environments/environment.ts:3` (`https://localhost:5001/api`, prod `/api`).
-
-## Backend — Run & DB
+## Backend — run & DB
 ```bash
 cd backend/src/GestionCommerciale.Api
-dotnet restore
-dotnet tool install --global dotnet-ef   # if missing
-dotnet ef database update -p ../GestionCommerciale.Infrastructure -s .  # InitialCreate already exists; only update on first run
-# new migration: dotnet ef migrations add <Name> -p ../GestionCommerciale.Infrastructure -s .
-dotnet run  # Swagger always at Program.cs:42; check launchSettings.json:9 for actual port
+dotnet restore && dotnet run   # Swagger at /swagger; launchSettings.json:9 = https://localhost:5001
+# new migration only when model changes:
+dotnet ef migrations add <Name> -p ../GestionCommerciale.Infrastructure -s .
 ```
-- Connection string `appsettings.json:10` = `(localdb)\mssqllocaldb` / `GestionCommercialeDb`; change `Server=` for full SQL Server.
-- Port gotcha: `Properties/launchSettings.json:9` is `https://localhost:30095` but `environment.ts:3` expects `https://localhost:5001`. Keep `environment.ts` + `Cors:AllowedOrigin` (`appsettings.json:13`, read at `Program.cs:28`, default `http://localhost:4200`) in sync or browser blocks calls.
-- DI: all registrations via `AddInfrastructure()` in `DependencyInjection.cs:11` (`AppDbContext`, `IAppDbContext`, `IClientService`, `IProductService`, `IOrderService`). Don't register elsewhere.
-- If `dotnet ef` fails, execute `backend/database/schema.sql` manually on SQL Server.
+- No manual `database update` on first run: `DbSeederHostedService` (`Infrastructure/Persistence/DbSeeder.cs:42`) auto-runs `MigrateAsync` + seeds demo clients/products/order on startup. `InitialCreate` migration already committed.
+- Dev connection string that actually applies is `appsettings.Development.json:9` (`Server=DESKTOP-7VIA6NI\MAROUEN`, machine-specific), NOT `appsettings.json:10` (LocalDB fallback). Check the Development file first when DB is unreachable.
+- DB-down behavior: seeder catches failure and API still starts (Swagger reachable); "error 26" = named instance/Browser stopped. Diagnose with `python tools/windows_service_manager.py ensure-sql --instance MAROUEN --no-auto-start --json` (see `tools/README.md`); starting services needs Admin terminal.
+- No SQL Server available? Use a `Data Source=...` connection string without `Server=`: `Infrastructure/Persistence/DependencyInjection.cs:18` auto-switches to SQLite (`EnsureCreated` path). `backend/database/schema.sql` + `seed.sql` are manual fallbacks only.
 
-## Frontend — Run
+## Frontend — run
 ```bash
 cd frontend/gestion-commerciale-app
-npm install
-npm start   # ng serve -> http://localhost:4200
-npm test    # ng test (Karma, largely untested — needs Chrome)
-ng build    # dist/gestion-commerciale-app (angular.json:23)
+npm install && npm start   # http://localhost:4200
 ```
-- Services `src/app/core/services/{client,product,order}.service.ts` use `environment.apiUrl`; `core/interceptors/error.interceptor.ts:11` surfaces `error.error.message` via `ToastService`.
+- API URL: `src/environments/environment.ts:3` (`https://localhost:5001/api`, matches launchSettings) vs `environment.prod.ts` (`/api`). If backend port changes, update it AND `Cors:AllowedOrigin` (`appsettings.json:13`, read at `Program.cs:28`) together or browser blocks calls.
+- Routing `src/app/app.routes.ts:3`: French paths `clients`/`produits`/`commandes`, all lazy `loadComponent`, default + wildcard redirect to `commandes`. HTTP wired once in `src/app/app.config.ts:8` (`errorInterceptor` surfaces backend `error.error.message` via toast — `core/interceptors/error.interceptor.ts:16`).
+- Deps must stay on one Angular major (18.x): partial `npm i @angular/...@latest` mixes majors and breaks install/build with ERESOLVE — restore via `git checkout -- package.json package-lock.json && npm ci`.
 
-## Gotchas
-- Controllers thin — all business rules in `Application/Services/` (`OrderService.cs:10` grading-critical): `TotalHT = sum(Qty*PrixUnitaire)`, `TotalTTC = round(TotalHT*1.19,2)` (`OrderService.cs:152`), `TauxTVA = 0.19m`. `UpdateAsync`/`DeleteAsync` reject non-`Brouillon`; `ValidateAsync` re-checks stock then decrements `Product.QuantiteStock` (`OrderService.cs:114`) and sets `Validee`. `DeleteAsync` only blocks `Validee` (allows `Annulee` per `OrderStatus.cs:6`).
-- `BusinessException -> 400`, `NotFoundException -> 404` via `ExceptionHandlingMiddleware.cs:28`; don't add per-controller try/catch. `Program.cs:7` `SuppressModelStateInvalidFilter = false` gives auto 400 for DTO validation (e.g. `[Required]`/`[Range]` in `OrderDtos.cs:30`).
-- `AppDbContext.cs:55` `Ignore(l => l.TotalLigne)` — computed in-memory (`OrderLine.cs:16` / `OrderService.cs:178`), not a column. `OrderLine->Product` is `WithMany()` no navigation; `Order->Client` is `Restrict`, `OrderLine->Order` is `Cascade` (`AppDbContext.cs:49,60`).
-- `Product.Reference` and `Order.NumeroCommande` have unique indexes (`AppDbContext.cs:32,41`); `NumeroCommande` = `CMD-yyyyMMddHHmmssfff` (`OrderService.cs:166`).
-- Middleware order `Program.cs:40`: `ExceptionHandling -> Swagger -> HttpsRedirection -> Cors("AllowAngularApp") -> Authorization -> MapControllers`.
-
-## Conventions
-- DTOs never expose entities (`Application/DTOs/` → `frontend/src/app/core/models/` mirrors them). Order form uses `FormArray`; authoritative totals from backend (frontend live preview uses same 19% TVA).
-- Angular `scss` default (`angular.json:13`), `strict` TS (`tsconfig.json:7`), `nullable` enabled (`GestionCommerciale.Api.csproj:6`). Auth/JWT not implemented — leave `[Authorize]` out unless adding full flow.
+## Rules that bite
+- All business logic lives in `Application/Services/` (`OrderService.cs:10`); controllers are thin, never add per-controller try/catch — `ExceptionHandlingMiddleware.cs:28` maps `BusinessException -> 400`, `NotFoundException -> 404` (`{ message }` JSON). DTO `[Required]`/`[Range]` auto-400s via `Program.cs:12` (`SuppressModelStateInvalidFilter = false`).
+- Order lifecycle (`OrderService.cs`): only `Brouillon` can be updated, validated or cancelled (`UpdateAsync:61`, `ValidateAsync:99`, `CancelAsync` → `Annulee`); `DeleteAsync:87` blocks only `Validee`. Endpoints: `POST api/orders/{id}/validate`, `POST api/orders/{id}/cancel`.
+- Stock + pricing: line `PrixUnitaire` is snapshotted from `Product.PrixUnitaireHT` (client cannot set price); stock checked at create (`BuildLinesAsync:126`) AND re-checked at validate before decrement (`ValidateAsync:107-115`). `TauxTVA = 0.19m`, `TotalHT = sum(Qty*Prix)`, `TotalTTC = round(TotalHT*1.19,2)` (`OrderService.cs:150-153`); frontend preview must use same 19% (`order-form.component.ts:13`).
+- EF mapping (`AppDbContext.cs`): `OrderLine.TotalLigne` is `Ignore`d (computed in-memory `OrderLine.cs:16`, not a column); `Order->Client` and `OrderLine->Product` are `Restrict`, `OrderLine->Order` is `Cascade`. Unique indexes on `Product.Reference` and `Order.NumeroCommande` (`CMD-yyyyMMddHHmmssfff`, `OrderService.cs:165`).
+- DI: everything via `AddInfrastructure()` in `Infrastructure/Persistence/DependencyInjection.cs:11` — don't register services elsewhere. No auth/JWT: leave `[Authorize]` out unless adding the full flow.

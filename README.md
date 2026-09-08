@@ -35,23 +35,18 @@ gestion-commerciale/
 ```bash
 cd backend/src/GestionCommerciale.Api
 dotnet restore
-```
-
-Configurer la chaîne de connexion dans `appsettings.json` si besoin (LocalDB par défaut), puis créer la base :
-
-```bash
-dotnet tool install --global dotnet-ef   # si pas déjà installé
-dotnet ef migrations add InitialCreate -p ../GestionCommerciale.Infrastructure -s .
-dotnet ef database update -p ../GestionCommerciale.Infrastructure -s .
-```
-
-Si `dotnet ef` pose problème, le script `backend/database/schema.sql` peut être exécuté directement sur le serveur SQL Server pour créer les tables manuellement.
-
-Lancer l'API :
-
-```bash
 dotnet run
 ```
+
+Aucune commande EF n'est nécessaire au premier lancement : au démarrage, l'API applique automatiquement la migration `InitialCreate` (déjà commise) et insère des données de démo (2 clients, 4 produits, 1 commande). Une migration n'est à créer qu'après modification du modèle :
+
+```bash
+dotnet ef migrations add <Nom> -p ../GestionCommerciale.Infrastructure -s .
+```
+
+- Chaîne de connexion : `appsettings.Development.json` (`Server=DESKTOP-7VIA6NI\MAROUEN`) s'applique en dev, `appsettings.json` (LocalDB) sinon — à adapter selon la machine.
+- Sans SQL Server : utiliser une chaîne `Data Source=...` (sans `Server=`) pour basculer automatiquement sur SQLite, ou exécuter `backend/database/schema.sql` puis `seed.sql` manuellement sur SQL Server.
+- En cas d'erreur 26 (instance introuvable) : démarrer l'instance nommée et le SQL Server Browser (voir `tools/README.md`).
 
 Swagger disponible sur l'URL affichée dans le terminal, par exemple `https://localhost:5001/swagger`.
 
@@ -73,7 +68,7 @@ Si le navigateur affiche une erreur CORS, vérifier que `Cors:AllowedOrigin` dan
 2. Créer plusieurs produits avec stock et prix (page Produits)
 3. Créer une commande pour ce client, ajouter plusieurs lignes de produits (page Commandes → Nouvelle commande)
 4. Les totaux HT et TTC (TVA 19%) sont calculés automatiquement
-5. Valider la commande depuis le détail ou la liste → le stock des produits est décrémenté
+5. Valider la commande depuis le détail ou la liste → le stock des produits est décrémenté (une commande en brouillon peut aussi être annulée → statut `Annulée`)
 6. Consulter la liste et le détail des commandes
 
 ## Authentification
